@@ -61,7 +61,7 @@ export function useAutomergeStore({
     const toRemove = [] as TLRecord["id"][]
     const toPut: TLRecord[] = 
       Object.values(peerStates)
-      .filter((record) => Object.keys(record).length === 0)
+      .filter((record) => record && Object.keys(record).length === 0)
 
     // put / remove the records in the store
     if (toRemove.length) store.remove(toRemove)
