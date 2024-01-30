@@ -59,7 +59,9 @@ export function useAutomergeStore({
   useEffect(() => {
     // TODO: peer removal when they go away
     const toRemove = [] as TLRecord["id"][]
-    const toPut = Object.values(peerStates) as TLRecord[]
+    const toPut: TLRecord[] = 
+      Object.values(peerStates)
+      .filter((record) => Object.keys(record).length === 0)
 
     // put / remove the records in the store
     if (toRemove.length) store.remove(toRemove)
