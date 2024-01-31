@@ -6,4 +6,4 @@ export function init(doc: TLStoreSnapshot) {
   Object.assign(doc, DEFAULT_STORE)
 }
 
-export { useAutomergeStore } from "./useAutomergeStore"
+export * from "./useAutomergeStore"

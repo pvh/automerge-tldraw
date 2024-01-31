@@ -13,6 +13,8 @@ import {
   computed,
   react,
   TLStoreSnapshot,
+  TLDocument,
+  sortById,
 } from "@tldraw/tldraw"
 import { useEffect, useState } from "react"
 import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo"
@@ -26,7 +28,6 @@ import { applyTLStoreChangesToAutomerge } from "./TLStoreToAutomerge.js"
 
 export function useAutomergeStore({
   handle,
-  userId,
   shapeUtils = [],
 }: {
   handle: DocHandle<TLStoreSnapshot>
@@ -43,62 +44,6 @@ export function useAutomergeStore({
   const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
     status: "loading",
   })
-
-  const [, updateLocalState] = useLocalAwareness({
-    handle,
-    userId,
-    initialState: {},
-  })
-
-  const [peerStates] = useRemoteAwareness({
-    handle,
-    localUserId: userId,
-  })
-
-  /* ----------- Presence stuff ----------- */
-  useEffect(() => {
-    // TODO: peer removal when they go away
-    const toRemove = [] as TLRecord["id"][]
-    const toPut: TLRecord[] = 
-      Object.values(peerStates)
-      .filter((record) => record && Object.keys(record).length !== 0)
-
-    // put / remove the records in the store
-    if (toRemove.length) store.remove(toRemove)
-    if (toPut.length) store.put(toPut)
-  }, [store, peerStates])
-
-  useEffect(() => {
-    /* ----------- Presence stuff ----------- */
-    // TODO: this should not be in this code
-    setUserPreferences({ id: userId })
-    const userPreferences = computed<{
-      id: string
-      color: string
-      name: string
-    }>("userPreferences", () => {
-      const user = getUserPreferences()
-      return {
-        id: user.id,
-        color: user.color ?? defaultUserPreferences.color,
-        name: user.name ?? defaultUserPreferences.name,
-      }
-    })
-
-    const presenceId = InstancePresenceRecordType.createId(userId)
-    const presenceDerivation = createPresenceStateDerivation(
-      userPreferences,
-      presenceId
-    )(store)
-
-    return react("when presence changes", () => {
-      const presence = presenceDerivation.value
-      requestAnimationFrame(() => {
-        updateLocalState(presence)
-      })
-    })
-  }, [store, userId, updateLocalState])
-  /* ----------- End presence stuff ----------- */
 
   /* -------------------- TLDraw <--> Automerge -------------------- */
   useEffect(() => {
@@ -166,4 +111,74 @@ export function useAutomergeStore({
   }, [handle, store])
 
   return storeWithStatus
+}
+
+export function useAutomergePresence({ handle, store, userMetadata }: 
+  { handle: DocHandle<TLDocument>, store: TLStoreWithStatus, userMetadata: any }) {
+
+  const innerStore = store?.store
+
+  const { userId, name, color } = userMetadata
+
+  const [, updateLocalState] = useLocalAwareness({
+    handle,
+    userId,
+    initialState: {},
+  })
+
+  const [peerStates] = useRemoteAwareness({
+    handle,
+    localUserId: userId,
+  })
+
+  /* ----------- Presence stuff ----------- */
+  useEffect(() => {
+    if (!innerStore) return 
+    
+    const toPut: TLRecord[] = 
+      Object.values(peerStates)
+      .filter((record) => record && Object.keys(record).length !== 0)
+
+    // put / remove the records in the store
+    const toRemove = innerStore.query.records('instance_presence').value.sort(sortById)
+      .map((record) => record.id)
+      .filter((id) => !toPut.find((record) => record.id === id))
+
+    if (toRemove.length) innerStore.remove(toRemove)
+    if (toPut.length) innerStore.put(toPut)
+  }, [innerStore, peerStates])
+
+  useEffect(() => {
+    if (!innerStore) return 
+    /* ----------- Presence stuff ----------- */
+    setUserPreferences({ id: userId, color, name })
+
+    const userPreferences = computed<{
+      id: string
+      color: string
+      name: string
+    }>("userPreferences", () => {
+      const user = getUserPreferences()
+      return {
+        id: user.id,
+        color: user.color ?? defaultUserPreferences.color,
+        name: user.name ?? defaultUserPreferences.name,
+      }
+    })
+
+    const presenceId = InstancePresenceRecordType.createId(userId)
+    const presenceDerivation = createPresenceStateDerivation(
+      userPreferences,
+      presenceId
+    )(innerStore)
+
+    return react("when presence changes", () => {
+      const presence = presenceDerivation.value
+      requestAnimationFrame(() => {
+        updateLocalState(presence)
+      })
+    })
+  }, [innerStore, userId, updateLocalState])
+  /* ----------- End presence stuff ----------- */
+
 }
