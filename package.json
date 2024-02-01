@@ -1,6 +1,6 @@
 {
   "name": "automerge-tldraw",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "a react hook for binding a tldraw editor instance to a dedicated automerge document",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
   "peerDependencies": {
     "@automerge/automerge-repo": "^1.1.0",
     "@automerge/automerge-repo-react-hooks": "^1.1.0",
-    "@tldraw/tldraw": "2.0.0-alpha.17"
+    "@tldraw/tldraw": "2.0.0-beta.2"
   },
   "devDependencies": {
     "@automerge/automerge-repo": "^1.1.0",
