@@ -13,7 +13,6 @@ import {
   computed,
   react,
   TLStoreSnapshot,
-  TLDocument,
   sortById,
 } from "@tldraw/tldraw"
 import { useEffect, useState } from "react"
@@ -114,7 +113,7 @@ export function useAutomergeStore({
 }
 
 export function useAutomergePresence({ handle, store, userMetadata }: 
-  { handle: DocHandle<TLDocument>, store: TLStoreWithStatus, userMetadata: any }) {
+  { handle: DocHandle<TLStoreSnapshot>, store: TLStoreWithStatus, userMetadata: any }) {
 
   const innerStore = store?.store
 
@@ -140,7 +139,7 @@ export function useAutomergePresence({ handle, store, userMetadata }:
       .filter((record) => record && Object.keys(record).length !== 0)
 
     // put / remove the records in the store
-    const toRemove = innerStore.query.records('instance_presence').value.sort(sortById)
+    const toRemove = innerStore.query.records('instance_presence').get().sort(sortById)
       .map((record) => record.id)
       .filter((id) => !toPut.find((record) => record.id === id))
 
@@ -173,7 +172,7 @@ export function useAutomergePresence({ handle, store, userMetadata }:
     )(innerStore)
 
     return react("when presence changes", () => {
-      const presence = presenceDerivation.value
+      const presence = presenceDerivation.get()
       requestAnimationFrame(() => {
         updateLocalState(presence)
       })

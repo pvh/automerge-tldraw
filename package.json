@@ -18,7 +18,7 @@
   "devDependencies": {
     "@automerge/automerge-repo": "^1.1.0",
     "@automerge/automerge-repo-react-hooks": "^1.1.0",
-    "@tldraw/tldraw": "2.0.0-alpha.17",
+    "@tldraw/tldraw": "2.0.0-beta.2",
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.48",
     "typescript": "^5.3.3"
