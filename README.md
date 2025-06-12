@@ -10,7 +10,7 @@ The current implementation is passably efficient but could be further optimized.
 
 ## Usage
 
-See the `example` folder. Call get a TLStore via `const store = useAutomerge(docHandle, userId)` and pass that to the `<TLDraw>` component.
+See the [example repo](https://github.com/pvh/tldraw-automerge-example). Call get a TLStore via `const store = useAutomerge(docHandle, userId)` and pass that to the `<TLDraw>` component.
 
 ## Credits
 
